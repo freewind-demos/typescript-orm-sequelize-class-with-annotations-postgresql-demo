@@ -1,35 +1,42 @@
 import "reflect-metadata";
-import {createConnection} from "typeorm";
-import {User} from "./entity/User";
-import {Profile} from './entity/Profile';
+import {User} from "./User";
+import {Profile} from "./Profile";
+import {sequelize} from "./connectToDb";
+
+function specifyRelations() {
+    User.hasMany(Profile);
+    Profile.belongsTo(User);
+
+}
 
 async function main() {
-  console.log('### > main')
-  try {
-    const connection = await createConnection()
-    console.log("Inserting a new user into the database...");
+    // have to specify relation here not in their own files,
+    // otherwise we will get compilation errors
+    await specifyRelations();
 
-    const profile = new Profile();
-    profile.gender = "male";
-    profile.photo = "me.jpg";
-    await connection.manager.save(profile);
+    console.log('### rebuildDatabase');
+    await sequelize.sync({force: true});
 
-    const user = new User();
-    user.firstName = "Timber";
-    user.lastName = "Saw";
-    user.age = 25;
-    user.profile = profile;
-    await connection.manager.save(user);
-    console.log("Saved a new user with id: " + user.id);
+    console.log("Inserting a new user with profiles into the database...");
 
-    console.log("Loading users from the database...");
-    const users = await connection.manager.find(User, {relations: ["profile"]});
-    console.log("Loaded users: ", users);
+    const user = await User.create({
+        firstName: "Timber",
+        lastName: "Saw",
+        age: 25,
+    })
 
-    console.log("Here you can setup and run express/koa/any other framework.");
-  } catch (error) {
-    console.error(error)
-  }
+    const profile = await Profile.create({
+        gender: "male",
+        photo: "me.jpg"
+    });
+
+    user.addProfile(profile);
+    await user.save();
+
+    const users = await User.findAll({include: Profile});
+    console.log("### users", JSON.stringify(users, null, 4));
+
+    await sequelize.close();
 }
 
 main()
