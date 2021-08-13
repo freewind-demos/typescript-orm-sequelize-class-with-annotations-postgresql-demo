@@ -1,12 +1,11 @@
-TypeScript Orm Sequelize Postgresql Demo
+TypeScript Orm Sequelize Class with Annotation Postgresql Demo
 ==================================
 
-Note: We have to define models first, and then set their relations together, otherwise we may get following errors:
+Note: 
+1. When using `sequelize-typescript`, there are many same names with `sequelize`. Please use ones
+from `sequelize-typescript`, e.g. `Model`, otherwise you will get all kinds of strange type errors
+2. Don't forget to include models when creating `new Sequelize('...', {models: [User, Profile]})`
 
-```
-sequelize@6.6.5_pg@8.5.1/node_modules/sequelize/lib/associations/mixin.js:93
-      throw new Error(`${source.name}.${_.lowerFirst(Type.name)} called with something that's not a subclass of Sequelize.Model`);
-```
 
 ```
 brew install postgresql
@@ -15,9 +14,9 @@ psql postgres
 
 ```
 create user "demo";
-create database "typescript-orm-sequelize-postgresql-demo";
+create database "typescript-orm-sequelize-class-with-annotations-postgresql-demo";
 alter user "demo" with encrypted password '123456';
-grant all privileges on database "typescript-orm-sequelize-postgresql-demo" to "demo";
+grant all privileges on database "typescript-orm-sequelize-class-with-annotations-postgresql-demo" to "demo";
 ```
 
 Steps to run this project:

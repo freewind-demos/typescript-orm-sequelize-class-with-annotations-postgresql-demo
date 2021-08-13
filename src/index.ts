@@ -1,36 +1,32 @@
 import "reflect-metadata";
-import {User} from "./User";
-import {Profile} from "./Profile";
+import {User} from "./models/User";
+import {Profile} from "./models/Profile";
 import {sequelize} from "./connectToDb";
 
-function specifyRelations() {
-    User.hasMany(Profile);
-    Profile.belongsTo(User);
-
-}
-
 async function main() {
-    // have to specify relation here not in their own files,
-    // otherwise we will get compilation errors
-    await specifyRelations();
 
     console.log('### rebuildDatabase');
     await sequelize.sync({force: true});
 
     console.log("Inserting a new user with profiles into the database...");
 
-    const user = await User.create({
-        firstName: "Timber",
-        lastName: "Saw",
-        age: 25,
-    })
+    const user = new User();
+    user.firstName = "Timber";
+    user.lastName = "Saw";
+    user.age = 25;
+    await user.save();
 
-    const profile = await Profile.create({
-        gender: "male",
-        photo: "me.jpg"
-    });
+    const profile = new Profile()
+    profile.gender = "male";
+    profile.photo = "me.jpg";
+    await profile.save();
 
-    user.addProfile(profile);
+    // Note: this is not actually type-safe
+    await user.$add('profile', profile);
+
+    // Note: following are not working
+    // profile.user = user;
+    // user.profiles = [profile];
     await user.save();
 
     const users = await User.findAll({include: Profile});
